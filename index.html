@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GeoMaster Brasil</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #021B79, #0575E6, #00c6ff);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    @keyframes aparecer {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .game {
+      background: white;
+      width: 100%;
+      max-width: 500px;
+      border-radius: 25px;
+      padding: 25px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.45);
+      text-align: center;
+      animation: aparecer 0.8s ease;
+    }
+
+    h1 {
+      color: #0b3d91;
+      margin-bottom: 10px;
+    }
+
+    .mapa {
+      width: 120px;
+      margin-bottom: 15px;
+      border-radius: 15px;
+    }
+
+    .info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+
+    .categoria {
+      color: #555;
+      margin-bottom: 10px;
+    }
+
+    .pergunta {
+      background: linear-gradient(to right, #d7f3ff, #e0f7fa);
+      padding: 20px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .opcao {
+      width: 100%;
+      padding: 15px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 15px;
+      background: linear-gradient(to right, #1565c0, #00bcd4);
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    .opcao:hover {
+      transform: scale(1.05);
+      filter: brightness(1.1);
+    }
+
+    .mensagem {
+      margin-top: 15px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .inicio button,
+    .fim button {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 15px;
+      font-size: 20px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+
+    .entrar {
+      background: #4caf50;
+      color: white;
+    }
+
+    .sair {
+      background: #f44336;
+      color: white;
+    }
+
+    .reiniciar {
+      background: #ffeb3b;
+    }
+  </style>
+</head>
+<body>
+
+<div class="game" id="game">
+  <div class="inicio" id="inicio">
+    <img class="mapa" src="https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg">
+    <h1>🌍 GeoMaster Brasil</h1>
+    <p>Desafie seus conhecimentos em geografia com 60 perguntas únicas!</p>
+
+    <br>
+
+    <p>🌎 10 perguntas sobre Países</p>
+    <p>🗺️ 10 perguntas sobre Mapas</p>
+    <p>🌦️ 10 perguntas sobre Clima</p>
+    <p>⛰️ 10 perguntas sobre Relevo</p>
+    <p>🏛️ 10 perguntas sobre Capitais</p>
+    <p>🌍 10 perguntas sobre Continentes</p>
+
+    <button class="entrar" onclick="iniciarJogo()">▶ Entrar</button>
+    <button class="sair" onclick="window.close()">✖ Sair</button>
+  </div>
+
+  <div id="quiz" style="display:none;">
+    <div class="info">
+      <span id="pontos">🌟 0</span>
+      <span id="vidas">❤️ 10</span>
+    </div>
+
+    <img class="mapa" src="https://upload.wikimedia.org/wikipedia/commons/8/80/World_map_-_low_resolution.svg">
+
+    <div class="categoria" id="categoria"></div>
+    <div class="pergunta" id="pergunta"></div>
+    <div style="margin-bottom:15px;">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/World_map_-_low_resolution.svg/800px-World_map_-_low_resolution.svg.png" style="width:100%; border-radius:20px; box-shadow:0 8px 20px rgba(0,0,0,0.3);">
+    </div>
+
+    <div id="opcoes"></div>
+
+    <div class="mensagem" id="mensagem"></div>
+  </div>
+
+  <div class="fim" id="fim" style="display:none;">
+    <h1>🏆 Fim de Jogo</h1>
+    <p id="resultado"></p>
+    <button class="reiniciar" onclick="reiniciarJogo()">🔄 Jogar Novamente</button>
+  </div>
+</div>
+
+<script>
+const perguntas = [
+  // PAÍSES
+  {
+    pergunta: 'Qual país é conhecido pelas pirâmides de Gizé?',
+    opcoes: ['Egito', 'México', 'China', 'Índia'],
+    resposta: 'Egito',
+    categoria: 'Países'
+  },
+  {
+    pergunta: 'Qual país tem formato de bota?',
+    opcoes: ['Portugal', 'Itália', 'Chile', 'México'],
+    resposta: 'Itália',
+    categoria: 'Países'
+  },
+  {
+    pergunta: 'Qual país possui a maior população do mundo?',
+    opcoes: ['Índia', 'China', 'Brasil', 'Estados Unidos'],
+    resposta: 'Índia',
+    categoria: 'Países'
+  },
+  {
+    pergunta: 'Qual país é famoso pela Torre Eiffel?',
+    opcoes: ['Alemanha', 'França', 'Canadá', 'Japão'],
+    resposta: 'França',
+    categoria: 'Países'
+  },
+  {
+    pergunta: 'Qual país possui a Muralha da China?',
+    opcoes: ['China', 'Japão', 'Coreia do Sul', 'Mongólia'],
+    resposta: 'China',
+    categoria: 'Países'
+  },
+  {
+    pergunta: 'Qual país é conhecido pelo tango?',
+    opcoes: ['Brasil', 'Chile', 'Argentina', 'Uruguai'],
+    resposta: 'Argentina',
+    categoria: 'Países'
+  },
+  {
+    pergunta: 'Qual país abriga Machu Picchu?',
+    opcoes: ['Peru', 'Chile', 'Bolívia', 'México'],
+    resposta: 'Peru',
+    categoria: 'Países'
+  },
+  {
+    pergunta: 'Qual país é famoso pelas tulipas e moinhos?',
+    opcoes: ['Holanda', 'Suécia', 'Noruega', 'Bélgica'],
+    resposta: 'Holanda',
+    categoria: 'Países'
+  },
+  {
+    pergunta: 'Qual país possui o maior território da América do Sul?',
+    opcoes: ['Argentina', 'Brasil', 'Peru', 'Chile'],
+    resposta: 'Brasil',
+    categoria: 'Países'
+  },
+  {
+    pergunta: 'Qual país é conhecido como Terra do Sol Nascente?',
+    opcoes: ['China', 'Índia', 'Japão', 'Tailândia'],
+    resposta: 'Japão',
+    categoria: 'Países'
+  },
+
+  // MAPAS
+  {
+    pergunta: 'Qual linha imaginária divide a Terra em norte e sul?',
+    opcoes: ['Linha do Equador', 'Greenwich', 'Trópico de Câncer', 'Trópico de Capricórnio'],
+    resposta: 'Linha do Equador',
+    categoria: 'Mapas'
+  },
+  {
+    pergunta: 'Qual meridiano divide leste e oeste?',
+    opcoes: ['Greenwich', 'Equador', 'Capricórnio', 'Câncer'],
+    resposta: 'Greenwich',
+    categoria: 'Mapas'
+  },
+  {
+    pergunta: 'Qual é o maior rio do Brasil?',
+    opcoes: ['Tietê', 'Paraná', 'Amazonas', 'São Francisco'],
+    resposta: 'Amazonas',
+    categoria: 'Mapas'
+  },
+  {
+    pergunta: 'Qual rio passa pelo Egito?',
+    opcoes: ['Amazonas', 'Nilo', 'Danúbio', 'Yangtzé'],
+    resposta: 'Nilo',
+    categoria: 'Mapas'
+  },
+  {
+    pergunta: 'Qual país possui formato semelhante a uma bota?',
+    opcoes: ['Chile', 'Portugal', 'Itália', 'México'],
+    resposta: 'Itália',
+    categoria: 'Mapas'
+  },
+  {
+    pergunta: 'Qual mapa representa o relevo de uma região?',
+    opcoes: ['Mapa físico', 'Mapa político', 'Mapa climático', 'Mapa populacional'],
+    resposta: 'Mapa físico',
+    categoria: 'Mapas'
+  },
+  {
+    pergunta: 'Qual mapa mostra divisões entre países?',
+    opcoes: ['Mapa físico', 'Mapa político', 'Mapa climático', 'Mapa econômico'],
+    resposta: 'Mapa político',
+    categoria: 'Mapas'
+  },
+  {
+    pergunta: 'Qual é o maior rio do mundo em volume de água?',
+    opcoes: ['Nilo', 'Amazonas', 'Mississipi', 'Yangtzé'],
+    resposta: 'Amazonas',
+    categoria: 'Mapas'
+  },
+  {
+    pergunta: 'Qual oceano aparece entre América e Europa?',
+    opcoes: ['Pacífico', 'Atlântico', 'Índico', 'Ártico'],
+    resposta: 'Atlântico',
+    categoria: 'Mapas'
+  },
+  {
+    pergunta: 'Qual linha imaginária passa pelo Brasil?',
+    opcoes: ['Equador', 'Ártico', 'Antártico', 'Greenwich'],
+    resposta: 'Equador',
+    categoria: 'Mapas'
+  },
+
+  // CLIMA
+  {
+    pergunta: 'Qual clima predomina na Amazônia?',
+    opcoes: ['Polar', 'Desértico', 'Equatorial', 'Mediterrâneo'],
+    resposta: 'Equatorial',
+    categoria: 'Clima'
+  },
+  {
+    pergunta: 'Qual clima é típico dos desertos?',
+    opcoes: ['Temperado', 'Polar', 'Desértico', 'Frio'],
+    resposta: 'Desértico',
+    categoria: 'Clima'
+  },
+  {
+    pergunta: 'Qual clima possui temperaturas muito baixas?',
+    opcoes: ['Polar', 'Tropical', 'Equatorial', 'Semiárido'],
+    resposta: 'Polar',
+    categoria: 'Clima'
+  },
+  {
+    pergunta: 'Qual clima predomina no Nordeste brasileiro?',
+    opcoes: ['Semiárido', 'Polar', 'Frio', 'Mediterrâneo'],
+    resposta: 'Semiárido',
+    categoria: 'Clima'
+  },
+  {
+    pergunta: 'Qual é o deserto mais famoso da África?',
+    opcoes: ['Saara', 'Atacama', 'Mojave', 'Gobi'],
+    resposta: 'Saara',
+    categoria: 'Clima'
+  },
+  {
+    pergunta: 'Qual clima possui chuvas durante o ano todo?',
+    opcoes: ['Equatorial', 'Desértico', 'Polar', 'Semiárido'],
+    resposta: 'Equatorial',
+    categoria: 'Clima'
+  },
+  {
+    pergunta: 'Qual clima predomina no sul do Brasil?',
+    opcoes: ['Temperado', 'Polar', 'Equatorial', 'Desértico'],
+    resposta: 'Temperado',
+    categoria: 'Clima'
+  },
+  {
+    pergunta: 'Qual fenômeno está ligado ao aquecimento global?',
+    opcoes: ['Degelo', 'Nevasca', 'Tornado', 'Geada'],
+    resposta: 'Degelo',
+    categoria: 'Clima'
+  },
+  {
+    pergunta: 'Qual clima é comum em regiões próximas ao Equador?',
+    opcoes: ['Equatorial', 'Polar', 'Frio', 'Mediterrâneo'],
+    resposta: 'Equatorial',
+    categoria: 'Clima'
+  },
+  {
+    pergunta: 'Qual clima é marcado por pouca chuva?',
+    opcoes: ['Semiárido', 'Equatorial', 'Temperado', 'Polar'],
+    resposta: 'Semiárido',
+    categoria: 'Clima'
+  },
+
+  // RELEVO
+  {
+    pergunta: 'Qual relevo possui grandes elevações?',
+    opcoes: ['Montanha', 'Vale', 'Planície', 'Depressão'],
+    resposta: 'Montanha',
+    categoria: 'Relevo'
+  },
+  {
+    pergunta: 'Qual tipo de relevo é plano?',
+    opcoes: ['Planície', 'Montanha', 'Cordilheira', 'Vale'],
+    resposta: 'Planície',
+    categoria: 'Relevo'
+  },
+  {
+    pergunta: 'Qual relevo é elevado e relativamente plano?',
+    opcoes: ['Planalto', 'Vale', 'Planície', 'Depressão'],
+    resposta: 'Planalto',
+    categoria: 'Relevo'
+  },
+  {
+    pergunta: 'Qual cordilheira fica na América do Sul?',
+    opcoes: ['Andes', 'Alpes', 'Himalaia', 'Rochosas'],
+    resposta: 'Andes',
+    categoria: 'Relevo'
+  },
+  {
+    pergunta: 'Qual é a montanha mais alta do mundo?',
+    opcoes: ['Everest', 'K2', 'Monte Branco', 'Aconcágua'],
+    resposta: 'Everest',
+    categoria: 'Relevo'
+  },
+  {
+    pergunta: 'Qual relevo é uma área rebaixada?',
+    opcoes: ['Depressão', 'Montanha', 'Planalto', 'Planície'],
+    resposta: 'Depressão',
+    categoria: 'Relevo'
+  },
+  {
+    pergunta: 'Qual relevo é formado por várias montanhas?',
+    opcoes: ['Cordilheira', 'Vale', 'Planície', 'Depressão'],
+    resposta: 'Cordilheira',
+    categoria: 'Relevo'
+  },
+  {
+    pergunta: 'Qual relevo é comum perto dos rios?',
+    opcoes: ['Planície', 'Montanha', 'Cordilheira', 'Planalto'],
+    resposta: 'Planície',
+    categoria: 'Relevo'
+  },
+  {
+    pergunta: 'Qual relevo é mais comum no Brasil?',
+    opcoes: ['Planalto', 'Montanha', 'Vale', 'Deserto'],
+    resposta: 'Planalto',
+    categoria: 'Relevo'
+  },
+  {
+    pergunta: 'Qual relevo possui altitude elevada?',
+    opcoes: ['Montanha', 'Vale', 'Depressão', 'Planície'],
+    resposta: 'Montanha',
+    categoria: 'Relevo'
+  },
+
+  // CAPITAIS
+  {
+    pergunta: 'Qual é a capital do Brasil?',
+    opcoes: ['Brasília', 'São Paulo', 'Rio de Janeiro', 'Salvador'],
+    resposta: 'Brasília',
+    categoria: 'Capitais'
+  },
+  {
+    pergunta: 'Qual é a capital da França?',
+    opcoes: ['Paris', 'Roma', 'Madri', 'Lisboa'],
+    resposta: 'Paris',
+    categoria: 'Capitais'
+  },
+  {
+    pergunta: 'Qual é a capital do Japão?',
+    opcoes: ['Pequim', 'Tóquio', 'Seul', 'Bangkok'],
+    resposta: 'Tóquio',
+    categoria: 'Capitais'
+  },
+  {
+    pergunta: 'Qual é a capital da Alemanha?',
+    opcoes: ['Berlim', 'Praga', 'Viena', 'Zurique'],
+    resposta: 'Berlim',
+    categoria: 'Capitais'
+  },
+  {
+    pergunta: 'Qual é a capital da Argentina?',
+    opcoes: ['Buenos Aires', 'Lima', 'Bogotá', 'Santiago'],
+    resposta: 'Buenos Aires',
+    categoria: 'Capitais'
+  },
+  {
+    pergunta: 'Qual é a capital da Itália?',
+    opcoes: ['Roma', 'Milão', 'Turim', 'Nápoles'],
+    resposta: 'Roma',
+    categoria: 'Capitais'
+  },
+  {
+    pergunta: 'Qual é a capital de Portugal?',
+    opcoes: ['Lisboa', 'Porto', 'Faro', 'Coimbra'],
+    resposta: 'Lisboa',
+    categoria: 'Capitais'
+  },
+  {
+    pergunta: 'Qual é a capital da Rússia?',
+    opcoes: ['Moscou', 'Kiev', 'Minsk', 'Varsóvia'],
+    resposta: 'Moscou',
+    categoria: 'Capitais'
+  },
+  {
+    pergunta: 'Qual é a capital da China?',
+    opcoes: ['Pequim', 'Xangai', 'Hong Kong', 'Macau'],
+    resposta: 'Pequim',
+    categoria: 'Capitais'
+  },
+  {
+    pergunta: 'Qual é a capital do México?',
+    opcoes: ['Cidade do México', 'Cancún', 'Monterrey', 'Tijuana'],
+    resposta: 'Cidade do México',
+    categoria: 'Capitais'
+  },
+
+  // CONTINENTES
+  {
+    pergunta: 'Qual continente fica o Brasil?',
+    opcoes: ['Europa', 'Ásia', 'América do Sul', 'África'],
+    resposta: 'América do Sul',
+    categoria: 'Continentes'
+  },
+  {
+    pergunta: 'Qual é o maior continente do mundo?',
+    opcoes: ['Ásia', 'Europa', 'África', 'Oceania'],
+    resposta: 'Ásia',
+    categoria: 'Continentes'
+  },
+  {
+    pergunta: 'Qual continente possui mais países?',
+    opcoes: ['África', 'Europa', 'América', 'Oceania'],
+    resposta: 'África',
+    categoria: 'Continentes'
+  },
+  {
+    pergunta: 'Qual continente fica a Austrália?',
+    opcoes: ['Oceania', 'África', 'Europa', 'Ásia'],
+    resposta: 'Oceania',
+    categoria: 'Continentes'
+  },
+  {
+    pergunta: 'Qual continente fica a China?',
+    opcoes: ['Ásia', 'Europa', 'África', 'Oceania'],
+    resposta: 'Ásia',
+    categoria: 'Continentes'
+  },
+  {
+    pergunta: 'Qual continente fica o Egito?',
+    opcoes: ['África', 'Europa', 'Ásia', 'América'],
+    resposta: 'África',
+    categoria: 'Continentes'
+  },
+  {
+    pergunta: 'Qual continente é coberto por gelo?',
+    opcoes: ['Antártida', 'Europa', 'África', 'Ásia'],
+    resposta: 'Antártida',
+    categoria: 'Continentes'
+  },
+  {
+    pergunta: 'Qual é o menor continente do mundo?',
+    opcoes: ['Oceania', 'Europa', 'África', 'América'],
+    resposta: 'Oceania',
+    categoria: 'Continentes'
+  },
+  {
+    pergunta: 'Qual continente fica o Canadá?',
+    opcoes: ['América do Norte', 'Europa', 'Ásia', 'África'],
+    resposta: 'América do Norte',
+    categoria: 'Continentes'
+  },
+  {
+    pergunta: 'Qual continente fica a França?',
+    opcoes: ['Europa', 'Ásia', 'África', 'Oceania'],
+    resposta: 'Europa',
+    categoria: 'Continentes'
+  }
+];
+
+let indice = 0;
+let pontos = 0;
+let vidas = 10;
+
+function iniciarJogo() {
+  document.getElementById('inicio').style.display = 'none';
+  document.getElementById('quiz').style.display = 'block';
+  mostrarPergunta();
+}
+
+function mostrarPergunta() {
+  if(indice >= perguntas.length || vidas <= 0) {
+    finalizarJogo();
+    return;
+  }
+
+  const atual = perguntas[indice];
+
+  document.getElementById('categoria').innerText = atual.categoria;
+  document.getElementById('pergunta').innerText = atual.pergunta;
+
+  const opcoes = document.getElementById('opcoes');
+  opcoes.innerHTML = '';
+
+  atual.opcoes.forEach(opcao => {
+    const botao = document.createElement('button');
+    botao.className = 'opcao';
+    botao.innerText = opcao;
+
+    botao.onclick = () => responder(opcao);
+
+    opcoes.appendChild(botao);
+  });
+}
+
+function responder(opcao) {
+  const atual = perguntas[indice];
+
+  if(opcao === atual.resposta) {
+    pontos += 10;
+    document.getElementById('mensagem').innerText = '✅ Você acertou!';
+  } else {
+    vidas--;
+    document.getElementById('mensagem').innerText = '❌ Você errou!';
+  }
+
+  document.getElementById('pontos').innerText = '🌟 ' + pontos;
+  document.getElementById('vidas').innerText = '❤️ ' + vidas;
+
+  indice++;
+
+  setTimeout(() => {
+    document.getElementById('mensagem').innerText = '';
+    mostrarPergunta();
+  }, 1000);
+}
+
+function finalizarJogo() {
+  document.getElementById('quiz').style.display = 'none';
+  document.getElementById('fim').style.display = 'block';
+
+  document.getElementById('resultado').innerText =
+    'Pontuação final: ' + pontos;
+}
+
+function reiniciarJogo() {
+  indice = 0;
+  pontos = 0;
+  vidas = 10;
+
+  document.getElementById('fim').style.display = 'none';
+  document.getElementById('quiz').style.display = 'block';
+
+  document.getElementById('pontos').innerText = '🌟 0';
+  document.getElementById('vidas').innerText = '❤️ 10';
+
+  mostrarPergunta();
+}
+</script>
+
+</body>
+</html>
